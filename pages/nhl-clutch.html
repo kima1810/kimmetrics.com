@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHL Clutch Stats</title>
+    <style>
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 50px;
+            min-height: 50px;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: left;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1000;
+            display: flex;
+        }
+
+        .top-bar a {
+            float: left;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .top-bar a:hover {
+            background-color: red;
+            color: #f2f2f2;
+        }
+
+        .top-bar a:hover span {
+            color: #f2f2f2;
+        }
+
+        .top-bar a span {
+            color: red;
+        }
+        
+        body {
+            background-color: rgb(231, 229, 229);
+            padding-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a href="index.html"><span>KIM</span>metrics</a>
+        <a href="">Projects</a>
+        <a href="">About</a>
+    </div>
+    
+    <h1 style="text-align: center">NHL Clutch Score: Goaltenders</h1>
+    <p>Clutch = 0.45 * [GSAx/60 in "Clutchtime"] + 0.55 * ([GSAx/60 in "Clutchtime"] - [GSAx/60 in all situations])</p>
+    <p>"Clutchtime": Any situation where conceding a goal would result in a lead change</p>
+    <p>Data is based on 2022-23 to 2024-25 seasons</p>
+
+    <div class="table">
+        <script>
+            async function fetchClutchData() {
+                const response = await fetch("http://localhost:3000/nhl-clutch");
+                const data = await response.json();
+            
+                let tableHTML = `
+                    <table border='1'>
+                        <tr>
+                            <th>Player</th>
+                            <th>Team(s)</th>
+                            <th>Total GP</th>
+                            <th>SV%</th>
+                            <th>GSAx/60</th>
+                            <th>Clutch TOI</th>
+                            <th>Clutchtime SV%</th>
+                            <th>Clutchtime GSAx/60</th>
+                            <th>SV% Deviation</th>
+                            <th>GSAx/60 Deviation</th>
+                            <th>Clutch</th>
+                        </tr>
+                `;
+            
+                data.forEach(row => {
+                    tableHTML += `
+                        <tr>
+                            <td>${row.Player}</td>
+                            <td>${row.Team}</td>
+                            <td>${row["Total GP"]}</td>
+                            <td>${row["SV%"]}</td>
+                            <td>${row["GSAx/60"]}</td>
+                            <td>${row["TOI in Clutch"]}</td>
+                            <td>${row["SV% in Clutch"]}</td>
+                            <td>${row["GSAx/60 in Clutch"]}</td>
+                            <td>${row["SV% Difference in Clutch"]}</td>
+                            <td>${row["GSAx/60 Difference in Clutch"]}</td>
+                            <td>${row["Clutch Score"]}</td>
+                        </tr>
+                    `;
+                });
+            
+                tableHTML += `</table>`;
+                document.querySelector(".table").innerHTML = tableHTML;
+            }
+            
+            fetchClutchData();
+        </script>
+                        
+    </div>
+
+    <p>Skater clutch scores coming soon!</p>
+    <p>All data courtesy of <a href="http://www.naturalstattrick.com">Natural Stat Trick</a></p>
+</body>
+</html>
