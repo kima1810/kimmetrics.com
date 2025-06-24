@@ -69,11 +69,14 @@
 
 				});
 
-	// Sidebar.
-		var $sidebar = $('#sidebar'),
-			$sidebar_inner = $sidebar.children('.inner');
+	// Sidebar
+		function initSidebar() {
+			var $sidebar = $('#sidebar'),
+				$sidebar_inner = $sidebar.children('.inner');
 
-		// Inactive by default on <= large.
+			if ($sidebar.length === 0) return;
+
+			// Inactive by default on <= large.
 			breakpoints.on('<=large', function() {
 				$sidebar.addClass('inactive');
 			});
@@ -82,157 +85,98 @@
 				$sidebar.removeClass('inactive');
 			});
 
-		// Hack: Workaround for Chrome/Android scrollbar position bug.
-			if (browser.os == 'android'
-			&&	browser.name == 'chrome')
-				$('<style>#sidebar .inner::-webkit-scrollbar { display: none; }</style>')
-					.appendTo($head);
+			// Chrome/Android scrollbar bug fix.
+			if (browser.os == 'android' && browser.name == 'chrome') {
+				$('<style>#sidebar .inner::-webkit-scrollbar { display: none; }</style>').appendTo($head);
+			}
 
-		// Toggle.
-			$('<a href="#sidebar" class="toggle">Toggle</a>')
-				.appendTo($sidebar)
-				.on('click', function(event) {
-
-					// Prevent default.
+			// Add toggle if missing
+			if ($sidebar.find('.toggle').length === 0) {
+				$('<a href="#sidebar" class="toggle">Toggle</a>')
+					.appendTo($sidebar)
+					.on('click', function(event) {
 						event.preventDefault();
 						event.stopPropagation();
-
-					// Toggle.
 						$sidebar.toggleClass('inactive');
+					});
+			}
 
+			// Link clicks
+			$sidebar.off('click.link').on('click.link', 'a', function(event) {
+				if (breakpoints.active('>large')) return;
+
+				var $a = $(this),
+					href = $a.attr('href'),
+					target = $a.attr('target');
+
+				event.preventDefault();
+				event.stopPropagation();
+
+				if (!href || href == '#' || href == '') return;
+
+				$sidebar.addClass('inactive');
+
+				setTimeout(function() {
+					if (target == '_blank') window.open(href);
+					else window.location.href = href;
+				}, 500);
+			});
+
+			// Stop bubbling
+			$sidebar.off('click touchend touchstart touchmove.sidebar')
+				.on('click touchend touchstart touchmove.sidebar', function(event) {
+					if (breakpoints.active('>large')) return;
+					event.stopPropagation();
 				});
 
-		// Events.
+			// Hide sidebar on body click/tap
+			$body.off('click touchend.sidebar').on('click touchend.sidebar', function(event) {
+				if (breakpoints.active('>large')) return;
+				$sidebar.addClass('inactive');
+			});
 
-			// Link clicks.
-				$sidebar.on('click', 'a', function(event) {
-
-					// >large? Bail.
-						if (breakpoints.active('>large'))
-							return;
-
-					// Vars.
-						var $a = $(this),
-							href = $a.attr('href'),
-							target = $a.attr('target');
-
-					// Prevent default.
-						event.preventDefault();
-						event.stopPropagation();
-
-					// Check URL.
-						if (!href || href == '#' || href == '')
-							return;
-
-					// Hide sidebar.
-						$sidebar.addClass('inactive');
-
-					// Redirect to href.
-						setTimeout(function() {
-
-							if (target == '_blank')
-								window.open(href);
-							else
-								window.location.href = href;
-
-						}, 500);
-
-				});
-
-			// Prevent certain events inside the panel from bubbling.
-				$sidebar.on('click touchend touchstart touchmove', function(event) {
-
-					// >large? Bail.
-						if (breakpoints.active('>large'))
-							return;
-
-					// Prevent propagation.
-						event.stopPropagation();
-
-				});
-
-			// Hide panel on body click/tap.
-				$body.on('click touchend', function(event) {
-
-					// >large? Bail.
-						if (breakpoints.active('>large'))
-							return;
-
-					// Deactivate.
-						$sidebar.addClass('inactive');
-
-				});
-
-		// Scroll lock.
-		// Note: If you do anything to change the height of the sidebar's content, be sure to
-		// trigger 'resize.sidebar-lock' on $window so stuff doesn't get out of sync.
-
-			$window.on('load.sidebar-lock', function() {
-
+			// Scroll lock
+			$window.off('.sidebar-lock').on('load.sidebar-lock', function() {
 				var sh, wh, st;
 
-				// Reset scroll position to 0 if it's 1.
-					if ($window.scrollTop() == 1)
-						$window.scrollTop(0);
+				if ($window.scrollTop() == 1)
+					$window.scrollTop(0);
 
 				$window
 					.on('scroll.sidebar-lock', function() {
-
 						var x, y;
+						if (breakpoints.active('<=large')) {
+							$sidebar_inner.data('locked', 0).css({ position: '', top: '' });
+							return;
+						}
+						x = Math.max(sh - wh, 0);
+						y = Math.max(0, $window.scrollTop() - x);
 
-						// <=large? Bail.
-							if (breakpoints.active('<=large')) {
-
-								$sidebar_inner
-									.data('locked', 0)
-									.css('position', '')
-									.css('top', '');
-
-								return;
-
-							}
-
-						// Calculate positions.
-							x = Math.max(sh - wh, 0);
-							y = Math.max(0, $window.scrollTop() - x);
-
-						// Lock/unlock.
-							if ($sidebar_inner.data('locked') == 1) {
-
-								if (y <= 0)
-									$sidebar_inner
-										.data('locked', 0)
-										.css('position', '')
-										.css('top', '');
-								else
-									$sidebar_inner
-										.css('top', -1 * x);
-
-							}
-							else {
-
-								if (y > 0)
-									$sidebar_inner
-										.data('locked', 1)
-										.css('position', 'fixed')
-										.css('top', -1 * x);
-
-							}
-
+						if ($sidebar_inner.data('locked') == 1) {
+							if (y <= 0)
+								$sidebar_inner.data('locked', 0).css({ position: '', top: '' });
+							else
+								$sidebar_inner.css('top', -1 * x);
+						} else {
+							if (y > 0)
+								$sidebar_inner.data('locked', 1).css({ position: 'fixed', top: -1 * x });
+						}
 					})
 					.on('resize.sidebar-lock', function() {
-
-						// Calculate heights.
-							wh = $window.height();
-							sh = $sidebar_inner.outerHeight() + 30;
-
-						// Trigger scroll.
-							$window.trigger('scroll.sidebar-lock');
-
+						wh = $window.height();
+						sh = $sidebar_inner.outerHeight() + 30;
+						$window.trigger('scroll.sidebar-lock');
 					})
 					.trigger('resize.sidebar-lock');
+			});
+		}
 
-				});
+		// Initial sidebar setup (for hardcoded pages)
+		initSidebar();
+
+		// Make it accessible globally for loadPartials.js
+		window.initSidebar = initSidebar;
+
 
 	// Menu.
 		var $menu = $('#menu'),
