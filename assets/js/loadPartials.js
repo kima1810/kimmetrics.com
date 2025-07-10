@@ -7,7 +7,7 @@ function loadPartials(selector, file, callback) {
         });
 }
 
-loadPartials('#header-include', 'partials/header.html');
-loadPartials('#sidebar-include', 'partials/sidebar.html', () => {
+loadPartials('#header-include', '/pages/partials/header.html');
+loadPartials('#sidebar-include', '/pages/partials/sidebar.html', () => {
     if (window.initSidebar) window.initSidebar();
 });

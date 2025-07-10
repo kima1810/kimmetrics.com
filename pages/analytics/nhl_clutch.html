@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<!--
+	Editorial by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>NHL Clutchness Model</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+
+		<style>
+			table {
+				border-collapse: collapse;
+      			width: 100%;
+			}
+			th, td {
+      			border: 1px solid #ccc;
+      			padding: 8px;
+      			text-align: left;
+    		}
+    		th {
+      			background-color: #f4f4f4;
+    		}
+			.table-wrapper {
+				overflow-x: auto;
+				width: 100%;
+				flex-shrink: 1;
+				flex-grow: 0;
+			}
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Main -->
+					<div id="main">
+						<div class="inner">
+
+							<!-- Header -->
+								<div id="header-include"></div>
+
+							<!-- Content -->
+								<section>
+									<header class="main">
+										<h1>NHL Clutchness - Goaltenders</h1>
+									</header>
+
+									<p>Clutchness = 0.7 * Absolute Clutchness + 0.3 * Elevation in Clutchtime</p>
+									<p>Absolute Clutchness = Goalie performance in Clutchtime</p>
+									<p>Clutchtime = Any combination of the playoffs, when the score is within 1, or when the goalie's team is on the penalty kill</p>
+									<p>*To qualify, a goalie must have at a minimum of 5 minutes of Clutch TOI</p>
+
+									<!-- Table -->
+										<div class="table-wrapper">
+											<div id="table-container" data-csv="../../databases/nhlClutch/clutchGoalies.csv"></div>
+										</div>
+
+									<p>Data provided via <a href="https://www.naturalstattrick.com/playerteams.php?stdoi=g">Natural Stat Trick</a></p>
+								</section>
+
+						</div>
+					</div>
+
+				<!-- Sidebar -->
+					<div id="sidebar-include"></div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="../../assets/js/jquery.min.js"></script>
+			<script src="../../assets/js/browser.min.js"></script>
+			<script src="../../assets/js/breakpoints.min.js"></script>
+			<script src="../../assets/js/util.js"></script>
+			<script src="../../assets/js/main.js"></script>
+			<script src="../../assets/js/loadPartials.js"></script>
+		
+		<!-- Table Scripts -->
+			<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+			<script src="../../assets/js/displayCSV.js"></script>
+
+	</body>
+</html>
