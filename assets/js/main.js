@@ -81,9 +81,10 @@
 				$sidebar.addClass('inactive');
 			});
 
+			/* --SIDEBAR BEGINS INACTIVE--
 			breakpoints.on('>large', function() {
 				$sidebar.removeClass('inactive');
-			});
+			}); */
 
 			// Chrome/Android scrollbar bug fix.
 			if (browser.os == 'android' && browser.name == 'chrome') {
@@ -135,7 +136,7 @@
 				$sidebar.addClass('inactive');
 			});
 
-			// Scroll lock
+			/* Scroll lock
 			$window.off('.sidebar-lock').on('load.sidebar-lock', function() {
 				var sh, wh, st;
 
@@ -168,7 +169,7 @@
 						$window.trigger('scroll.sidebar-lock');
 					})
 					.trigger('resize.sidebar-lock');
-			});
+			}); */
 		}
 
 		// Initial sidebar setup (for hardcoded pages)

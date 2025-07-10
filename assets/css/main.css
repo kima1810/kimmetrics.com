@@ -2018,7 +2018,7 @@ button,
           font-size: 1.5rem; }
       #sidebar.inactive {
         margin-left: -24em; } }
-  @media screen and (max-width: 1280px) {
+/*  @media screen and (max-width: 1280px) { */
     #sidebar {
       box-shadow: 0 0 5em 0 rgba(0, 0, 0, 0.175);
       height: 100%;
@@ -2048,7 +2048,7 @@ button,
           font-size: 1.5rem;
           margin-left: -0.4375em; }
       body.is-preload #sidebar {
-        display: none; } }
+        display: none; } /*}*/
   @media screen and (max-width: 736px) {
     #sidebar .toggle {
       text-indent: 7.25em;
