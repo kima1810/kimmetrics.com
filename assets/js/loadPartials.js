@@ -10,4 +10,16 @@ function loadPartials(selector, file, callback) {
 loadPartials('#header-include', '/pages/partials/header.html');
 loadPartials('#sidebar-include', '/pages/partials/sidebar.html', () => {
     if (window.initSidebar) window.initSidebar();
+
+    // Dropdown menus
+    document.querySelectorAll('#sidebar .opener').forEach(opener => {
+        opener.addEventListener('click', () => {
+            opener.classList.toggle('active');
+
+            const submenu = opener.nextElementSibling;
+            if (submenu && submenu.tagName === 'UL') {
+                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+    });
 });

@@ -136,7 +136,7 @@
 				$sidebar.addClass('inactive');
 			});
 
-			/* Scroll lock
+			/* Scroll lock (disabled)
 			$window.off('.sidebar-lock').on('load.sidebar-lock', function() {
 				var sh, wh, st;
 
