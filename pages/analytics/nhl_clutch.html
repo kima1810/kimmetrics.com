@@ -47,13 +47,16 @@
 							<!-- Content -->
 								<section>
 									<header class="main">
-										<h1>NHL Clutchness - Goaltenders</h1>
+										<h1>NHL Player Clutchness</h1>
 									</header>
 
-									<p>Clutchness = 0.7 * Absolute Clutchness + 0.3 * Elevation in Clutchtime</p>
-									<p>Absolute Clutchness = Goalie performance in Clutchtime</p>
-									<p>Clutchtime = Any combination of the playoffs, when the score is within 1, or when the goalie's team is on the penalty kill</p>
-									<p>*To qualify, a goalie must have at a minimum of 5 minutes of Clutch TOI</p>
+									<p><em>This model is only displaying goalie stats right now, skater clutch stats will be introduced later.</em></p>
+									<p>
+										<em>Clutchtime</em> can be defined by any combination of scenarios that involve the playoffs, the penalty kill, or the score being within 1.
+										The <em>Clutchness</em> rating is calculated by combining a goalie's save percentage, high danger save percentage, and GSAx/60 in those scenarios,
+										then factoring in how much their game is elevated in clutchtime as well.
+									</p>
+									<p><em>To qualify, a goalie must have at a minimum of 60 minutes of Clutch TOI.</em></p>
 
 									<!-- Table -->
 										<div class="table-wrapper">

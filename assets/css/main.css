@@ -1831,6 +1831,17 @@ button,
           .posts article:last-child:after {
             display: none; } }
 
+article a {
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+
+article a:focus-visible {
+  outline: 2px solid #007acc; /* or your custom color */
+  border-radius: 8px;
+}
+
 /* Wrapper */
 #wrapper {
   display: -moz-flex;
