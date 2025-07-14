@@ -1842,6 +1842,21 @@ article a:focus-visible {
   border-radius: 8px;
 }
 
+.article-meta {
+	font-size: 0.9em;
+	color: #666;
+	margin-top: 0.5em;
+}
+
+.article-meta a {
+	color: #0077cc;
+	text-decoration: underline;
+}
+
+.article-meta .separator {
+	margin: 0 0.5em;
+}
+
 /* Wrapper */
 #wrapper {
   display: -moz-flex;
