@@ -1,6 +1,7 @@
+import site
+site.addsitedir('C:/Users/alexy/AppData/Roaming/Python/Python313/site-packages')
 import os
 import csv
-import re
 from bs4 import BeautifulSoup
 
 folder = './pages/articles/published/'
@@ -8,18 +9,33 @@ output = './pages/articles/articles.csv'
 
 data = []
 
+# Limit size of preview text
+def trim_text(text, limit=150):
+    return text if len(text) <= limit else text[:limit].rstrip() + "..."
+
 for filename in os.listdir(folder):
     if filename.endswith('.html'):
         with open(os.path.join(folder, filename), 'r', encoding='utf-8') as f:
-            soup = BeautifulSoup(f, 'html.parser')
-            title = soup.find('h1').get_text(strip=True) if soup.find('h1') else ''
+            soup = BeautifulSoup(f, 'lxml')
+
+            # Get <h1> or fallback to <title> or filename
+            h1 = soup.find('h1')
+            title = h1.get_text(strip=True) if h1 else (soup.title.string.strip() if soup.title else filename)
+
+            # Get <time> or fallback to date from filename
             time_tag = soup.find('time')
-            date = time_tag.get('datetime', '') if time_tag else filename[:10]
-            img = soup.find('img')
-            image_src = img['src'] if img else ''
-            p = soup.find('p')
-            summary = p.get_text(strip=True) if p else ''
+            date = time_tag.get('datetime', '') if time_tag and time_tag.has_attr('datetime') else filename[:10]
+
+            # Get first <img> or fallback
+            img_tag = soup.find('img')
+            image_src = img_tag['src'] if img_tag and img_tag.has_attr('src') else '/images/default.jpg'
+
+            # Get first <p> or fallback
+            p_tag = soup.find('p')
+            summary = trim_text(p_tag.get_text(strip=True) if p_tag else 'No summary available.')
+
             slug = os.path.splitext(filename)[0]
+
             data.append([slug, title, date, image_src, summary])
 
 with open(output, 'w', newline='', encoding='utf-8') as f:
