@@ -1510,6 +1510,11 @@ button,
   text-decoration: none;
   text-transform: uppercase;
   white-space: nowrap; }
+  /*.actions.tags li a.button.active {
+  background-color: #f56a6a !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  }*/
   input[type="submit"]:hover,
   input[type="reset"]:hover,
   input[type="button"]:hover,
@@ -2297,3 +2302,34 @@ article a:focus-visible {
     border-top: 0;
     margin-top: 0;
     padding-top: 0; }
+
+/* Article Search Page */
+.button.primary {
+  background-color: red;
+  box-shadow: none;
+  color: #ffffff !important;
+}
+
+.actions.tags {
+  display: flex;
+  justify-content: center;  /* centers the buttons horizontally */
+  flex-wrap: wrap;          /* lets buttons wrap to new lines if needed */
+  gap: 0.5em;               /* optional: space between buttons */
+  padding-left: 0;          /* remove default ul padding */
+  list-style: none;         /* remove default list bullets */
+}
+
+.tag-button:hover,
+.tag-button:focus {
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.tag-button.active:hover {
+  opacity: 1;
+}
+
+.tags {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

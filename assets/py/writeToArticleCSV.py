@@ -34,11 +34,15 @@ for filename in os.listdir(folder):
             p_tag = soup.find('p')
             summary = trim_text(p_tag.get_text(strip=True) if p_tag else 'No summary available.')
 
+            # Get tags from <meta name="tags" content="tag1, tag2, ...">
+            meta_tags = soup.find('meta', attrs={'name': 'tags'})
+            tags = meta_tags['content'].strip() if meta_tags and meta_tags.has_attr('content') else ''
+
             slug = os.path.splitext(filename)[0]
 
-            data.append([slug, title, date, image_src, summary])
+            data.append([slug, title, date, image_src, summary, tags])
 
 with open(output, 'w', newline='', encoding='utf-8') as f:
     writer = csv.writer(f)
-    writer.writerow(['slug', 'title', 'date', 'image', 'summary'])
+    writer.writerow(['slug', 'title', 'date', 'image', 'summary', 'tags'])
     writer.writerows(data)
