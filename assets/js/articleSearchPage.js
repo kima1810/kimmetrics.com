@@ -3,11 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const articlesContainer = document.getElementById('recent-articles-container');
   const paginationContainer = document.querySelector('.pagination');
   const tagButtons = document.querySelectorAll('.tag-filter');
+  const activeTags = new Set();
 
   let allArticles = [];
   let filteredArticles = [];
   let currentPage = 1;
-  let currentTag = 'All';
 
   function renderArticles() {
     const start = (currentPage - 1) * ARTICLES_PER_PAGE;
@@ -69,16 +69,15 @@ document.addEventListener('DOMContentLoaded', () => {
     paginationContainer.innerHTML += createPageButton(currentPage + 1, 'Next', false, currentPage === totalPages);
   }
 
-  function filterArticlesByTag(tag) {
-    currentTag = tag;
+  function filterArticlesByActiveTags() {
     currentPage = 1;
 
-    if (tag === 'All') {
+    if (activeTags.size === 0) {
       filteredArticles = [...allArticles];
     } else {
       filteredArticles = allArticles.filter(article => {
         const tags = article.tags ? article.tags.split(',').map(t => t.trim()) : [];
-        return tags.includes(tag);
+        return [...activeTags].every(tag => tags.includes(tag));
       });
     }
 
@@ -98,36 +97,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setupTagButtons() {
-  const tagButtons = document.querySelectorAll('.tag-button');
+    const tagButtons = document.querySelectorAll('.tag-button');
 
-  tagButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
+    tagButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tag = button.dataset.tag;
 
-      const tag = button.dataset.tag;
+        if (button.classList.contains('active')) {
+          button.classList.remove('active');
+          activeTags.delete(tag);
+        } else {
+          button.classList.add('active');
+          activeTags.add(tag);
+        }
 
-      // Remove 'active' from all buttons
-      tagButtons.forEach(btn => btn.classList.remove('primary'));
-
-      // Add 'active' to the clicked one
-      button.classList.add('primary');
-
-      // Filter logic
-      if (!tag || tag.toLowerCase() === 'all') {
-        filteredArticles = [...allArticles];
-      } else {
-        filteredArticles = allArticles.filter(article =>
-          article.tags && article.tags.toLowerCase().includes(tag.toLowerCase())
-        );
-      }
-
-      currentPage = 1;
-      renderArticles();
-      renderPagination();
+        filterArticlesByActiveTags();
+      });
     });
-  });
   }
 
+  function getActiveTagsFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const tagParam = params.get("tags");
+    return tagParam ? tagParam.split(',') : [];
+  }
+
+  // MAIN FETCH AND INIT LOGIC
   fetch('/pages/articles/articles.csv')
     .then(res => res.text())
     .then(csvText => {
@@ -138,10 +134,22 @@ document.addEventListener('DOMContentLoaded', () => {
         )
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      filteredArticles = [...allArticles];
+      // Activate tags from URL (before filtering)
+      const urlTags = getActiveTagsFromURL();
+      const tagButtons = document.querySelectorAll('.tag-button');
 
-      renderArticles();
-      renderPagination();
+      urlTags.forEach(tag => {
+        const button = [...tagButtons].find(btn =>
+          btn.textContent.trim().toLowerCase() === tag.toLowerCase()
+        );
+        if (button) {
+          button.classList.add('active');
+          activeTags.add(tag);
+        }
+      });
+
+      // Then filter and render
+      filterArticlesByActiveTags();
       setupTagButtons();
     });
 

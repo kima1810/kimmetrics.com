@@ -2304,32 +2304,41 @@ article a:focus-visible {
     padding-top: 0; }
 
 /* Article Search Page */
-.button.primary {
-  background-color: red;
-  box-shadow: none;
-  color: #ffffff !important;
-}
-
 .actions.tags {
   display: flex;
-  justify-content: center;  /* centers the buttons horizontally */
-  flex-wrap: wrap;          /* lets buttons wrap to new lines if needed */
-  gap: 0.5em;               /* optional: space between buttons */
-  padding-left: 0;          /* remove default ul padding */
-  list-style: none;         /* remove default list bullets */
+  justify-content: center;     /* horizontal alignment */
+  flex-wrap: wrap;             /* wrapping */
+  gap: 0.5em;                  /* spacing */
+  padding-left: 0;
+  list-style: none;
+  margin: 1em 0;
+}
+
+.tag-button {
+  display: inline-flex;        /* vertical alignment */
+  align-items: center;         /* vertical alignment */
+  justify-content: center;     /* horizontal alignment */
+  padding: 0.5em 1em;
+  border: 1px solid #ccc;
+  border-radius: 2em;
+  background-color: #f5f5f5;
+  color: #333;
+  font-size: 0.9em;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-align: center;
+  height: 2.5em;
 }
 
 .tag-button:hover,
 .tag-button:focus {
+  background-color: #e0e0e0;
   text-decoration: none;
-  opacity: 0.9;
 }
 
-.tag-button.active:hover {
-  opacity: 1;
-}
-
-.tags {
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.tag-button.active {
+  background-color: red;
+  color: #fff !important;
+  border-color: red;
+  box-shadow: none;
 }
