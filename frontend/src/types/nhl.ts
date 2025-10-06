@@ -19,10 +19,10 @@ export interface NHLStanding {
   gamesPlayed: number;
   wins: number;
   losses: number;
-  overtimeLosses: number;
+  otLosses: number;  // Changed from overtimeLosses
   points: number;
-  goalsFor: number;
-  goalsAgainst: number;
+  goalFor: number;  // Changed from goalsFor
+  goalAgainst: number;  // Changed from goalsAgainst
   goalDifferential: number;
   divisionName?: string;
   conferenceName?: string;

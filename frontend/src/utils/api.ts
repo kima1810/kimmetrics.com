@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds for potentially slow NHL API calls
+  timeout: 120000, // 120 seconds (2 minutes) for custom date ranges
   headers: {
     'Content-Type': 'application/json',
   },

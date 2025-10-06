@@ -22,6 +22,9 @@ export function LoadingSpinner({ size = 'medium', message }: LoadingSpinnerProps
           {message}
         </p>
       )}
+      <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+        Custom date ranges may take 30-60 seconds to process
+      </p>
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function NHLStandingsTable({ data, sortConfig, onSort }: NHLStandingsTabl
       width: '80px'
     },
     {
-      key: 'overtimeLosses',
+      key: 'otLosses',  // Changed from overtimeLosses
       label: 'OTL',
       sortable: true,
       align: 'center',
@@ -68,14 +68,14 @@ export function NHLStandingsTable({ data, sortConfig, onSort }: NHLStandingsTabl
       )
     },
     {
-      key: 'goalsFor',
+      key: 'goalFor',  // Changed from goalsFor
       label: 'GF',
       sortable: true,
       align: 'center',
       width: '80px'
     },
     {
-      key: 'goalsAgainst',
+      key: 'goalAgainst',  // Changed from goalsAgainst
       label: 'GA',
       sortable: true,
       align: 'center',

@@ -1,115 +1,253 @@
-# Kimmetrics.com - NHL Statistics Dashboard
+# Kimmetrics - Multi-Sport Analytics Platform
 
-A web application that provides NHL statistics and analytics using the [NHL API Python wrapper](https://github.com/coreyjs/nhl-api-py).
-
-## Features
-
-- Interactive table displaying NHL team statistics:
-  - Games played
-  - Wins
-  - Losses
-  - OT losses
-  - Points
-  - Goals for
-  - Goals against
-  - Goal differential
-- Filterable data by:
-  - Season selection
-  - Custom date range
-  - Division/Conference
-- Sortable columns for easy data comparison
+A web application for viewing and analyzing sports statistics, starting with NHL data. Built with a modular architecture to easily support multiple sports in the future.
 
 ## Tech Stack
 
-### Frontend
-- React.js
-- TypeScript
-- Tailwind CSS
-- Vite
-
 ### Backend
-- Python
-- FastAPI
-- NHL API Python wrapper
+- **Python 3.13** with FastAPI
+- **nhl-api-py** - Python wrapper for the NHL API
+- **uvicorn** - ASGI server
 
-### Infrastructure
-- AWS hosting
+### Frontend
+- **React 18** with TypeScript
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Styling
+- **React Router** - Navigation
+- **Axios** - HTTP client
+- **TanStack Query (React Query)** - API state management
 
 ## Project Structure
-
-```
-├── backend/
-│   ├── requirements.txt
-│   └── src/
-│       ├── main.py
-│       ├── core/
-│       │   ├── config.py
-│       │   └── database.py
-│       └── sports/
-│           └── nhl/
-│               ├── models.py
-│               ├── routes.py
-│               └── services.py
-├── frontend/
+kimmetrics.com/
+├── backend/                    # Python FastAPI backend
 │   ├── src/
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── vite.config.ts
-└── shared/
-    └── types/
-```
+│   │   ├── main.py            # FastAPI app entry point
+│   │   ├── core/              # Core utilities (config, database)
+│   │   └── sports/            # Sport-specific modules
+│   │       ├── nhl/           # NHL API integration
+│   │       │   ├── routes.py  # API endpoints
+│   │       │   ├── services.py # Business logic
+│   │       │   └── models.py  # Data models
+│   │       └── common/        # Shared sports utilities
+│   ├── requirements.txt       # Python dependencies
+│   └── .env                   # Environment variables
+│
+├── frontend/                   # React TypeScript frontend
+│   ├── src/
+│   │   ├── types/             # TypeScript type definitions
+│   │   │   ├── common.ts      # Reusable types (Table, Filter, etc.)
+│   │   │   └── nhl.ts         # NHL-specific types
+│   │   │
+│   │   ├── utils/             # Utility functions
+│   │   │   └── api.ts         # Axios instance and interceptors
+│   │   │
+│   │   ├── hooks/             # Custom React hooks
+│   │   │   ├── common/        # Reusable hooks
+│   │   │   │   ├── useAPI.ts     # Generic API fetching
+│   │   │   │   ├── useSorting.ts # Generic table sorting
+│   │   │   │   └── useFilters.ts # Generic filter state
+│   │   │   └── sports/nhl/
+│   │   │       └── useNHLData.ts # NHL-specific data fetching
+│   │   │
+│   │   ├── components/
+│   │   │   ├── common/        # Reusable UI components
+│   │   │   │   ├── Table/
+│   │   │   │   │   ├── Table.tsx        # Generic sortable table
+│   │   │   │   │   ├── TableHeader.tsx  # Table header with sort
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── Filters/
+│   │   │   │   │   ├── DateRangeFilter.tsx   # Date range picker
+│   │   │   │   │   ├── DropdownFilter.tsx    # Dropdown selector
+│   │   │   │   │   ├── FilterContainer.tsx   # Collapsible filter panel
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── Loading/
+│   │   │   │       ├── LoadingSpinner.tsx
+│   │   │   │       └── index.ts
+│   │   │   │
+│   │   │   └── sports/        # Sport-specific components
+│   │   │       └── nhl/
+│   │   │           ├── NHLStandingsTable.tsx  # NHL standings display
+│   │   │           ├── NHLFilters.tsx         # NHL filter controls
+│   │   │           └── index.ts
+│   │   │
+│   │   ├── pages/             # Page-level components
+│   │   │   └── NHL/
+│   │   │       └── StandingsPage.tsx  # Main NHL standings page
+│   │   │
+│   │   ├── App.tsx            # Main app component with routing
+│   │   └── index.css          # Global styles (Tailwind)
+│   │
+│   ├── package.json           # Node dependencies
+│   ├── tailwind.config.js     # Tailwind configuration
+│   └── vite.config.ts         # Vite configuration
+│
+├── shared/                     # Shared types (future use)
+├── .venv/                      # Python virtual environment
+├── docker-compose.yml          # Docker setup (optional)
+└── README.md                   # This file
 
-## Getting Started
+## Features
+
+### Current Features (NHL)
+- **Live NHL Standings** - View current season standings
+- **Historical Data** - Access past seasons
+- **Date Range Filtering** - Calculate standings for custom date ranges
+- **Combined Conference/Division Filter with Entire League option** - Filter by division or conference
+- **Sortable Columns** - Click any column header to sort
+- **Responsive Design** - Works on desktop and mobile
+- **Dark Mode Support** - Built-in dark mode styling
+- **Combined Season/Custom Date Range selector** - Choose full season or specific dates
+- **Manual filter application with 'Apply Filters' button to prevent accidental expensive queries**
+- **Smart date range defaults (start-to-present, season-start-to-end, or full season)**
+
+### Planned Features
+- NBA statistics and standings
+- MLB statistics and standings
+- Custom analytics and advanced metrics
+- Team comparison tools
+- Player statistics
+- Game predictions
+
+## API Endpoints
+
+### NHL Endpoints
+
+#### GET `/api/nhl/standings`
+Get NHL standings with optional filtering.
+
+**Query Parameters:**
+- `season` (string): NHL season in format YYYYYYYY (e.g., "20242025")
+- `start_date` (string, optional): Filter games from this date (YYYY-MM-DD)
+- `end_date` (string, optional): Filter games until this date (YYYY-MM-DD)
+- `division` (string, optional): Filter by division name
+- `conference` (string, optional): Filter by conference name
+
+**Example:**
+GET /api/nhl/standings?season=20242025&division=atlantic
+
+#### GET `/api/nhl/teams`
+Get all NHL teams with their information.
+
+#### GET `/api/nhl/seasons`
+Get available seasons for selection.
+
+## Setup Instructions
 
 ### Prerequisites
-- Python 3.x
-- Node.js
+- Python 3.13+
+- Node.js 18+
 - npm or yarn
-- Docker (optional)
 
-### Installation
+### Backend Setup
 
-1. Clone the repository:
-```bash
-git clone https://github.com/kima1810/kimmetrics.com.git
-cd kimmetrics.com
-```
-
-2. Set up the backend:
+1. Navigate to backend directory:
 ```bash
 cd backend
-pip install -r requirements.txt
-```
 
-3. Set up the frontend:
-```bash
-cd frontend
-npm install
-```
+Activate virtual environment:
 
-### Running the Application
+bashsource ../.venv/bin/activate  # On Windows: ..\.venv\Scripts\activate
 
-1. Start the backend server:
-```bash
-cd backend
-python src/main.py
-```
+Install dependencies:
 
-2. Start the frontend development server:
-```bash
-cd frontend
+bashpip install -r requirements.txt
+
+Start the FastAPI server:
+
+bashuvicorn src.main:app --reload
+Backend runs on http://127.0.0.1:8000
+Frontend Setup
+
+Navigate to frontend directory:
+
+bashcd frontend
+
+Install dependencies:
+
+bashnpm install
+
+Start the development server:
+
+bashnpm run dev
+Frontend runs on http://localhost:5173
+Development Workflow
+Running Both Servers
+Open two terminal windows:
+Terminal 1 (Backend):
+bashcd kimmetrics.com/backend
+source ../.venv/bin/activate
+uvicorn src.main:app --reload
+Terminal 2 (Frontend):
+bashcd kimmetrics.com/frontend
 npm run dev
-```
+Making Changes
+Adding a New Sport
 
-## Docker Support
+Create new directory in backend/src/sports/[sport]/
+Create routes.py, services.py, and models.py
+Register routes in backend/src/main.py
+Create frontend types in frontend/src/types/[sport].ts
+Create components in frontend/src/components/sports/[sport]/
+Create hooks in frontend/src/hooks/sports/[sport]/
 
-The application can be run using Docker Compose:
+Adding a New Common Component
 
-```bash
-docker-compose up
-```
+Create component in frontend/src/components/common/[ComponentName]/
+Define types in frontend/src/types/common.ts if needed
+Export from index.ts for easy imports
+Component should be generic and reusable across sports
 
-## License
+Architecture Decisions
+Why FastAPI?
 
-[MIT License](LICENSE)
+The nhl-api-py library is Python-only
+FastAPI provides automatic API documentation
+Easy to add caching and custom analytics
+Fast performance with async/await support
+
+Why Vite?
+
+Faster than Create React App
+Better TypeScript support
+Modern build tooling
+Excellent developer experience
+
+Component Structure
+
+Common components are sport-agnostic and highly reusable
+Sport components use common components and add sport-specific logic
+Pages compose components and manage state
+Hooks handle data fetching and state management
+
+Type System
+
+Use import type { } for TypeScript types/interfaces
+Use regular import { } for values/functions/constants
+Keep types separate from implementation
+Common types go in types/common.ts
+Sport-specific types go in types/[sport].ts
+
+Troubleshooting
+Backend Issues
+Module not found errors:
+bashpip install -r requirements.txt
+Port already in use:
+bash# Kill process on port 8000
+# Windows: netstat -ano | findstr :8000
+# Linux/Mac: lsof -ti:8000 | xargs kill
+Frontend Issues
+Type import errors:
+Make sure you're using import type { } for TypeScript types:
+typescriptimport type { TableColumn } from '../types/common';
+Tailwind classes not working:
+Make sure index.css has the Tailwind directives:
+css@tailwind base;
+@tailwind components;
+@tailwind utilities;
+API connection refused:
+Custom date range queries can take 30-60 seconds due to NHL API rate limits
+Consider using season filters for faster results
+
+Ensure backend is running on port 8000
+Check CORS settings in backend/src/main.py
+Verify API URL in frontend/src/utils/api.ts
