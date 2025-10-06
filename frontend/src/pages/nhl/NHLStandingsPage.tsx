@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { NHLFilters, NHLStandingsTable } from '../../components/sports/nhl';
 import { LoadingSpinner } from '../../components/common/Loading';
+import { Toast } from '../../components/common/Toast';
 import { useFilters } from '../../hooks/common/useFilters';
 import { useSorting } from '../../hooks/common/useSorting';
 import { useNHLStandings, useNHLSeasons } from '../../hooks/sports/nhl/useNHLData';
@@ -14,7 +15,6 @@ const initialFilters: NHLFiltersType = {
   conference: null
 };
 
-// Memoized table component to prevent unnecessary re-renders
 const StandingsTableSection = React.memo(({ 
   standings, 
   sortConfig, 
@@ -26,7 +26,7 @@ const StandingsTableSection = React.memo(({
     return <LoadingSpinner size="large" message="Loading NHL standings..." />;
   }
 
-  if (error) {
+  if (error && !error.includes('timed out')) {
     return (
       <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg p-4">
         <h3 className="text-lg font-medium text-red-800 dark:text-red-200">
@@ -55,20 +55,27 @@ StandingsTableSection.displayName = 'StandingsTableSection';
 export function StandingsPage() {
   const { filters, updateFilters } = useFilters(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState<NHLFiltersType>(initialFilters);
+  const [showToast, setShowToast] = useState(false);
   
-  const { data: standingsData, error: standingsError, loading: standingsLoading } = useNHLStandings(appliedFilters);
+  const { data: standingsData, error: standingsError, loading: standingsLoading, timeoutOccurred } = useNHLStandings(appliedFilters);
   const { data: seasonsData } = useNHLSeasons();
   
   const standings = standingsData?.standings || [];
   const { sortedData, sortConfig, handleSort } = useSorting(standings, { key: 'points', direction: 'desc' });
   
-  const availableSeasons = seasonsData?.seasons || ['20242025', '20232024', '20222023', '20212022', '20202021'];
+  const availableSeasons = seasonsData?.seasons || ['20242025', '20232024', '20222023'];
+
+  // Show toast when timeout occurs
+  React.useEffect(() => {
+    if (timeoutOccurred) {
+      setShowToast(true);
+    }
+  }, [timeoutOccurred]);
 
   const handleApplyFilters = () => {
     setAppliedFilters({ ...filters });
   };
 
-  // Memoize the header text to prevent recalculation
   const headerSubtext = useMemo(() => {
     if (appliedFilters.startDate && appliedFilters.endDate) {
       return `Custom date range: ${appliedFilters.startDate} to ${appliedFilters.endDate}`;
@@ -80,7 +87,6 @@ export function StandingsPage() {
     return `${appliedFilters.season.slice(0, 4)}-${appliedFilters.season.slice(4, 8)} Season`;
   }, [appliedFilters.startDate, appliedFilters.endDate, appliedFilters.season]);
 
-  // Memoize the results summary
   const resultsSummary = useMemo(() => {
     let summary = `Showing ${sortedData.length} teams`;
     if (appliedFilters.division) {
@@ -94,7 +100,6 @@ export function StandingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header - Static, doesn't re-render on filter changes */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
             NHL Standings
@@ -104,7 +109,15 @@ export function StandingsPage() {
           </p>
         </div>
 
-        {/* Filters - Remains open when data changes */}
+        {showToast && (
+          <Toast
+            message="Custom date range query timed out. Showing full 2024-25 season instead. Try a shorter range (1-2 months) for faster results."
+            type="error"
+            duration={8000}
+            onClose={() => setShowToast(false)}
+          />
+        )}
+
         <NHLFilters
           filters={filters}
           onFiltersChange={updateFilters}
@@ -112,14 +125,12 @@ export function StandingsPage() {
           availableSeasons={availableSeasons}
         />
 
-        {/* Results Summary */}
         <div className="mb-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {resultsSummary}
           </p>
         </div>
 
-        {/* Standings Table - Only this section re-renders with new data */}
         <StandingsTableSection
           standings={sortedData}
           sortConfig={sortConfig}
@@ -128,7 +139,6 @@ export function StandingsPage() {
           error={standingsError}
         />
 
-        {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>
             Data provided by NHL API • Last updated: {new Date().toLocaleString()}
