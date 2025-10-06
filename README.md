@@ -101,8 +101,8 @@ kimmetrics.com/
 - **Smart date range defaults (start-to-present, season-start-to-end, or full season)**
 
 ### Planned Features
-- NBA statistics and standings
-- MLB statistics and standings
+- S^2 -- Football statistics and Fantasy Football tools
+- More sports and leagues (basketball, soccer)
 - Custom analytics and advanced metrics
 - Team comparison tools
 - Player statistics
