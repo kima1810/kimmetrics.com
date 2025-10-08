@@ -8,6 +8,9 @@ A web application for viewing and analyzing sports statistics, starting with NHL
 - **Python 3.13** with FastAPI
 - **nhl-api-py** - Python wrapper for the NHL API
 - **uvicorn** - ASGI server
+- **PostgreSQL** - Game data caching and fast queries
+- **SQLAlchemy** - Python ORM
+- **Alembic** - Database migrations
 
 ### Frontend
 - **React 18** with TypeScript
@@ -18,6 +21,7 @@ A web application for viewing and analyzing sports statistics, starting with NHL
 - **TanStack Query (React Query)** - API state management
 
 ## Project Structure
+```bash
 kimmetrics.com/
 ├── backend/                    # Python FastAPI backend
 │   ├── src/
@@ -85,6 +89,7 @@ kimmetrics.com/
 ├── .venv/                      # Python virtual environment
 ├── docker-compose.yml          # Docker setup (optional)
 └── README.md                   # This file
+```
 
 ## Features
 
@@ -137,6 +142,17 @@ Get available seasons for selection.
 - Python 3.13+
 - Node.js 18+
 - npm or yarn
+
+### Database Setup (PostgreSQL)
+See ```backend/DATABASE_SETUP.md``` for detailed instructions.
+
+Quick start:
+```bash
+# Install PostgreSQL, then:
+cd backend
+python setup_database.py
+```
+
 
 ### Backend Setup
 
