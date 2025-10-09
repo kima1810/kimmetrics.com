@@ -28,6 +28,12 @@ class NHLService:
         try:
             if start_date or end_date:
                 # Use database for custom date ranges (FAST!)
+                if not db:
+                    # Fallback to old method if no db connection
+                    return await self._get_standings_fallback(
+                        season, start_date, end_date, division, conference
+                    )
+                
                 return await self._get_standings_from_db(
                     season, start_date, end_date, division, conference, db
                 )
@@ -76,6 +82,19 @@ class NHLService:
         return calculate_standings_from_db(
             db, start_dt, end_dt, season, division, conference
         )
+    
+    async def _get_standings_fallback(
+        self,
+        season: str,
+        start_date: Optional[str],
+        end_date: Optional[str],
+        division: Optional[str],
+        conference: Optional[str]
+    ):
+        """Fallback to API method if database not available"""
+        # Just return full season if no DB
+        standings = self.client.standings.league_standings(season=season)
+        return self._filter_standings(standings, division, conference)
     
     def _filter_standings(self, standings: Dict, division: Optional[str], conference: Optional[str]) -> Dict:
         """Filter full season standings by division/conference"""

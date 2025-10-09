@@ -63,7 +63,7 @@ export function StandingsPage() {
   const standings = standingsData?.standings || [];
   const { sortedData, sortConfig, handleSort } = useSorting(standings, { key: 'points', direction: 'desc' });
   
-  const availableSeasons = seasonsData?.seasons || ['20242025', '20232024', '20222023'];
+  const availableSeasons = seasonsData?.seasons || ['20242025', '20232024', '20222023', '20212022', '20202021'];
 
   // Show toast when timeout occurs
   React.useEffect(() => {
