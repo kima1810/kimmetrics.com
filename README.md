@@ -23,73 +23,114 @@ A web application for viewing and analyzing sports statistics, starting with NHL
 ## Project Structure
 ```bash
 kimmetrics.com/
-├── backend/                    # Python FastAPI backend
+├── backend/                           # Python FastAPI backend
 │   ├── src/
-│   │   ├── main.py            # FastAPI app entry point
-│   │   ├── core/              # Core utilities (config, database)
-│   │   └── sports/            # Sport-specific modules
-│   │       ├── nhl/           # NHL API integration
-│   │       │   ├── routes.py  # API endpoints
-│   │       │   ├── services.py # Business logic
-│   │       │   └── models.py  # Data models
-│   │       └── common/        # Shared sports utilities
-│   ├── requirements.txt       # Python dependencies
-│   └── .env                   # Environment variables
+│   │   ├── main.py                   # FastAPI app entry point
+│   │   ├── core/                     # Core utilities (config, database)
+│   │   ├── database/                 # PostgreSQL database layer
+│   │   │   ├── config.py            # Database connection & session management
+│   │   │   ├── init_db.py           # Database initialization script
+│   │   │   ├── sync_service.py      # NHL API to database sync service
+│   │   │   ├── models/              # SQLAlchemy models
+│   │   │   │   ├── team.py          # Team model
+│   │   │   │   └── game.py          # Game model with indexes
+│   │   │   └── queries/             # SQL query modules (separated from logic)
+│   │   │       ├── team_queries.py  # Team CRUD operations
+│   │   │       └── game_queries.py  # Game queries & standings calculation
+│   │   └── sports/                   # Sport-specific modules
+│   │       └── nhl/                  # NHL API integration
+│   │           ├── routes.py         # API endpoints with DB dependency injection
+│   │           └── services.py       # Business logic (uses database queries)
+│   ├── requirements.txt              # Python dependencies
+│   ├── .env                          # Environment variables (DATABASE_URL, etc.)
+│   ├── setup_database.py             # One-time database setup script
+│   ├── daily_sync.py                 # Daily sync script (run daily)
+│   ├── sync_season.py                # Historical season sync utility
+│   └── DATABASE_SETUP.md             # Database setup guide
 │
-├── frontend/                   # React TypeScript frontend
+├── frontend/                          # React TypeScript frontend
+│   ├── public/
+│   │   └── assets/                   # Static assets (future CSS templates)
 │   ├── src/
-│   │   ├── types/             # TypeScript type definitions
-│   │   │   ├── common.ts      # Reusable types (Table, Filter, etc.)
-│   │   │   └── nhl.ts         # NHL-specific types
+│   │   ├── types/                    # TypeScript type definitions
+│   │   │   ├── common.ts             # Reusable types (Table, Filter, etc.)
+│   │   │   └── nhl.ts                # NHL-specific types
 │   │   │
-│   │   ├── utils/             # Utility functions
-│   │   │   └── api.ts         # Axios instance and interceptors
+│   │   ├── utils/                    # Utility functions
+│   │   │   └── api.ts                # Axios instance (120s timeout)
 │   │   │
-│   │   ├── hooks/             # Custom React hooks
-│   │   │   ├── common/        # Reusable hooks
-│   │   │   │   ├── useAPI.ts     # Generic API fetching
-│   │   │   │   ├── useSorting.ts # Generic table sorting
-│   │   │   │   └── useFilters.ts # Generic filter state
+│   │   ├── hooks/                    # Custom React hooks
+│   │   │   ├── common/               # Reusable hooks
+│   │   │   │   ├── useAPI.ts         # Generic API fetching with timeout fallback
+│   │   │   │   ├── useSorting.ts     # Generic table sorting
+│   │   │   │   └── useFilters.ts     # Generic filter state
 │   │   │   └── sports/nhl/
-│   │   │       └── useNHLData.ts # NHL-specific data fetching
+│   │   │       └── useNHLData.ts     # NHL-specific data fetching with fallback
 │   │   │
 │   │   ├── components/
-│   │   │   ├── common/        # Reusable UI components
+│   │   │   ├── common/               # Reusable UI components
 │   │   │   │   ├── Table/
-│   │   │   │   │   ├── Table.tsx        # Generic sortable table
-│   │   │   │   │   ├── TableHeader.tsx  # Table header with sort
+│   │   │   │   │   ├── Table.tsx            # Generic sortable table
+│   │   │   │   │   ├── TableHeader.tsx      # Table header with sort icons
 │   │   │   │   │   └── index.ts
 │   │   │   │   ├── Filters/
-│   │   │   │   │   ├── DateRangeFilter.tsx   # Date range picker
-│   │   │   │   │   ├── DropdownFilter.tsx    # Dropdown selector
-│   │   │   │   │   ├── FilterContainer.tsx   # Collapsible filter panel
+│   │   │   │   │   ├── DateRangeFilter.tsx  # Date range picker
+│   │   │   │   │   ├── DropdownFilter.tsx   # Dropdown selector
+│   │   │   │   │   ├── FilterContainer.tsx  # Collapsible filter panel
 │   │   │   │   │   └── index.ts
-│   │   │   │   └── Loading/
-│   │   │   │       ├── LoadingSpinner.tsx
+│   │   │   │   ├── Loading/
+│   │   │   │   │   ├── LoadingSpinner.tsx   # Loading indicator
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── Toast/
+│   │   │   │       ├── Toast.tsx            # Toast notification (errors, success)
 │   │   │   │       └── index.ts
 │   │   │   │
-│   │   │   └── sports/        # Sport-specific components
+│   │   │   └── sports/               # Sport-specific components
 │   │   │       └── nhl/
 │   │   │           ├── NHLStandingsTable.tsx  # NHL standings display
-│   │   │           ├── NHLFilters.tsx         # NHL filter controls
+│   │   │           ├── NHLFilters.tsx         # NHL filter controls with Apply button
 │   │   │           └── index.ts
 │   │   │
-│   │   ├── pages/             # Page-level components
+│   │   ├── pages/                    # Page-level components
 │   │   │   └── NHL/
 │   │   │       └── StandingsPage.tsx  # Main NHL standings page
 │   │   │
-│   │   ├── App.tsx            # Main app component with routing
-│   │   └── index.css          # Global styles (Tailwind)
+│   │   ├── App.tsx                   # Main app with routing & React Query
+│   │   ├── main.tsx                  # Vite entry point
+│   │   └── index.css                 # Global styles (Tailwind directives)
 │   │
-│   ├── package.json           # Node dependencies
-│   ├── tailwind.config.js     # Tailwind configuration
-│   └── vite.config.ts         # Vite configuration
+│   ├── index.html                    # HTML entry (title: "Kimmetrics - Sports Analytics")
+│   ├── package.json                  # Node dependencies
+│   ├── tailwind.config.js            # Tailwind configuration
+│   ├── postcss.config.js             # PostCSS configuration
+│   └── vite.config.ts                # Vite configuration
 │
-├── shared/                     # Shared types (future use)
-├── .venv/                      # Python virtual environment
-├── docker-compose.yml          # Docker setup (optional)
-└── README.md                   # This file
+├── shared/                            # Shared types (future use)
+│   └── types/
+├── .venv/                             # Python virtual environment
+├── .gitignore                         # Git ignore patterns
+├── docker-compose.yml                 # Docker setup (optional)
+├── README.md                          # This file
 ```
+### Key Architectural Features
+
+**Backend:**
+- **Modular Database Layer**: All SQL queries separated into `queries/` modules
+- **Fast Custom Date Ranges**: PostgreSQL caching makes 85-day queries < 100ms
+- **Sync Utilities**: Daily sync script and historical season sync tools
+- **DB Dependency Injection**: Routes use FastAPI's `Depends(get_db)` pattern
+
+**Frontend:**
+- **Reusable Components**: All common components work across sports
+- **Toast Notifications**: Non-intrusive error/success messages
+- **Timeout Fallback**: Auto-falls back to full season on custom range timeout
+- **Optimized Rendering**: React.memo prevents unnecessary re-renders
+- **Type Safety**: Full TypeScript with separated type definitions
+
+**Database (PostgreSQL):**
+- **Indexed Tables**: Fast queries with composite indexes on date/season/teams
+- **Foreign Key Constraints**: Data integrity with team references
+- **Incremental Sync**: Only fetches new games since last sync
 
 ## Features
 
