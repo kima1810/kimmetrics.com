@@ -21,11 +21,7 @@ A web application for viewing and analyzing sports statistics, starting with NHL
 - **TanStack Query (React Query)** - API state management
 
 ## Project Structure
-<<<<<<< HEAD
-```
-=======
 ```bash
->>>>>>> e32dc56 (Setup SQL Database)
 kimmetrics.com/
 ├── backend/                    # Python FastAPI backend
 │   ├── src/
