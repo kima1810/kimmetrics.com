@@ -1,4 +1,4 @@
-import React from 'react';
+// Using the new JSX transform — explicit React import not required
 import type { DropdownOption } from '../../../types/common';
 
 interface DropdownFilterProps {
@@ -18,7 +18,7 @@ export function DropdownFilter({ value, options, onChange, label, placeholder = 
       <select
         value={value || ''}
         onChange={(e) => onChange(e.target.value || null)}
-        className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+        className="inline-block w-auto min-w-[10rem] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (

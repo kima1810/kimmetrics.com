@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DateRangeFilter, DropdownFilter, FilterContainer } from '../../common/Filters';
 import type { NHLFilters } from '../../../types/nhl';
 
@@ -68,8 +68,17 @@ export function NHLFiltersComponent({ filters, onFiltersChange, onApplyFilters, 
     return '';
   };
 
+  const applyButton = (
+    <button
+      onClick={onApplyFilters}
+      className="apply-btn px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Apply Filters
+    </button>
+  );
+
   return (
-    <FilterContainer title="Filters">
+    <FilterContainer title="Filters" headerRight={applyButton}>
       <DropdownFilter
         label="Season / Date Range"
         value={showCustomDates ? 'custom' : filters.season}
@@ -98,15 +107,6 @@ export function NHLFiltersComponent({ filters, onFiltersChange, onApplyFilters, 
         onChange={handleLocationChange}
         placeholder="Entire League"
       />
-
-      <div className="flex items-end">
-        <button
-          onClick={onApplyFilters}
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Apply Filters
-        </button>
-      </div>
     </FilterContainer>
   );
 }

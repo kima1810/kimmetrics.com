@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { MainLayout } from '../../components/layout/MainLayout';
 import { NHLFilters, NHLStandingsTable } from '../../components/sports/nhl';
 import { LoadingSpinner } from '../../components/common/Loading';
 import { Toast } from '../../components/common/Toast';
@@ -6,16 +7,17 @@ import { useFilters } from '../../hooks/common/useFilters';
 import { useSorting } from '../../hooks/common/useSorting';
 import { useNHLStandings, useNHLSeasons } from '../../hooks/sports/nhl/useNHLData';
 import type { NHLFilters as NHLFiltersType } from '../../types/nhl';
+import '../../styles/nhl-table.css';
 
 const initialFilters: NHLFiltersType = {
-  season: '20242025',
+  season: '20252026',
   startDate: null,
   endDate: null,
   division: null,
   conference: null
 };
 
-const StandingsTableSection = React.memo(({ 
+const StandingsContent = React.memo(({ 
   standings, 
   sortConfig, 
   handleSort, 
@@ -28,29 +30,23 @@ const StandingsTableSection = React.memo(({
 
   if (error && !error.includes('timed out')) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg p-4">
-        <h3 className="text-lg font-medium text-red-800 dark:text-red-200">
-          Error Loading Standings
-        </h3>
-        <p className="mt-2 text-red-700 dark:text-red-300">
-          {error}
-        </p>
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h3>Error Loading Standings</h3>
+        <p>{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-      <NHLStandingsTable
-        data={standings}
-        sortConfig={sortConfig}
-        onSort={handleSort}
-      />
-    </div>
+    <NHLStandingsTable
+      data={standings}
+      sortConfig={sortConfig}
+      onSort={handleSort}
+    />
   );
 });
 
-StandingsTableSection.displayName = 'StandingsTableSection';
+StandingsContent.displayName = 'StandingsContent';
 
 export function StandingsPage() {
   const { filters, updateFilters } = useFilters(initialFilters);
@@ -63,9 +59,8 @@ export function StandingsPage() {
   const standings = standingsData?.standings || [];
   const { sortedData, sortConfig, handleSort } = useSorting(standings, { key: 'points', direction: 'desc' });
   
-  const availableSeasons = seasonsData?.seasons || ['20242025', '20232024', '20222023', '20212022', '20202021'];
+  const availableSeasons = seasonsData?.seasons || ['20252026', '20242025', '20232024', '20222023', '20212022', '20202021'];
 
-  // Show toast when timeout occurs
   React.useEffect(() => {
     if (timeoutOccurred) {
       setShowToast(true);
@@ -76,75 +71,49 @@ export function StandingsPage() {
     setAppliedFilters({ ...filters });
   };
 
-  const headerSubtext = useMemo(() => {
+  const headerText = useMemo(() => {
     if (appliedFilters.startDate && appliedFilters.endDate) {
-      return `Custom date range: ${appliedFilters.startDate} to ${appliedFilters.endDate}`;
-    } else if (appliedFilters.startDate) {
-      return `From ${appliedFilters.startDate} to present`;
-    } else if (appliedFilters.endDate) {
-      return `Season start to ${appliedFilters.endDate}`;
+      return `${appliedFilters.startDate} to ${appliedFilters.endDate}`;
     }
     return `${appliedFilters.season.slice(0, 4)}-${appliedFilters.season.slice(4, 8)} Season`;
-  }, [appliedFilters.startDate, appliedFilters.endDate, appliedFilters.season]);
-
-  const resultsSummary = useMemo(() => {
-    let summary = `Showing ${sortedData.length} teams`;
-    if (appliedFilters.division) {
-      summary += ` in ${appliedFilters.division.charAt(0).toUpperCase() + appliedFilters.division.slice(1)} Division`;
-    } else if (appliedFilters.conference) {
-      summary += ` in ${appliedFilters.conference.charAt(0).toUpperCase() + appliedFilters.conference.slice(1)} Conference`;
-    }
-    return summary;
-  }, [sortedData.length, appliedFilters.division, appliedFilters.conference]);
+  }, [appliedFilters]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-            NHL Standings
-          </h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-            {headerSubtext}
-          </p>
+    <MainLayout>
+      {showToast && (
+        <Toast
+          message="Query timed out. Showing full season instead. Try a shorter date range."
+          type="error"
+          duration={8000}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">NHL Standings</h2>
+          <p className="text-gray-600">{headerText}</p>
         </div>
 
-        {showToast && (
-          <Toast
-            message="Custom date range query timed out. Showing full 2024-25 season instead. Try a shorter range (1-2 months) for faster results."
-            type="error"
-            duration={8000}
-            onClose={() => setShowToast(false)}
+        <div className="mb-6">
+          <NHLFilters
+            filters={filters}
+            onFiltersChange={updateFilters}
+            onApplyFilters={handleApplyFilters}
+            availableSeasons={availableSeasons}
           />
-        )}
-
-        <NHLFilters
-          filters={filters}
-          onFiltersChange={updateFilters}
-          onApplyFilters={handleApplyFilters}
-          availableSeasons={availableSeasons}
-        />
-
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {resultsSummary}
-          </p>
         </div>
 
-        <StandingsTableSection
-          standings={sortedData}
-          sortConfig={sortConfig}
-          handleSort={handleSort}
-          loading={standingsLoading}
-          error={standingsError}
-        />
-
-        <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>
-            Data provided by NHL API • Last updated: {new Date().toLocaleString()}
-          </p>
+        <div className="standings-container">
+          <StandingsContent
+            standings={sortedData}
+            sortConfig={sortConfig}
+            handleSort={handleSort}
+            loading={standingsLoading}
+            error={standingsError}
+          />
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

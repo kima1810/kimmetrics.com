@@ -1,0 +1,152 @@
+/* Reset conflicting styles */
+body {
+  display: block !important;
+  place-items: unset !important;
+  margin: 0 !important;
+  background: #f7f7f7 url(/assets/css/images/bg01.png) !important;
+  color: #474747 !important;
+  font-family: 'Source Sans Pro', sans-serif !important;
+  min-height: unset !important;
+}
+
+#page-wrapper {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
+
+/* NHL-style table overrides */
+
+/* Center the table container */
+.standings-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* NHL-style table */
+.nhl-standings-table {
+  width: 100%;
+  background: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+}
+
+/* Black header with white text */
+.nhl-standings-table thead {
+  background: #000000 !important;
+}
+
+.nhl-standings-table thead th {
+  color: #ffffff !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  border: none;
+}
+
+.nhl-standings-table thead th:first-child {
+  text-align: left;
+  padding-left: 1.5rem;
+}
+
+/* Table body rows */
+.nhl-standings-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.15s ease;
+}
+
+.nhl-standings-table tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.nhl-standings-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Table cells */
+.nhl-standings-table tbody td {
+  padding: 1rem 0.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.nhl-standings-table tbody td:first-child {
+  text-align: left;
+  padding-left: 1.5rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+/* Striped rows (like NHL.com) */
+.nhl-standings-table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.nhl-standings-table tbody tr:nth-child(even):hover {
+  background-color: #f3f4f6;
+}
+
+/* Points column highlight */
+.nhl-standings-table .points-cell {
+  font-weight: 700;
+  color: #0066cc;
+}
+
+/* Goal differential colors */
+.nhl-standings-table .diff-positive {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.nhl-standings-table .diff-negative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.nhl-standings-table .diff-neutral {
+  color: #6b7280;
+}
+
+/* Sort indicators */
+.nhl-standings-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.nhl-standings-table thead th.sortable:hover {
+  background-color: #1a1a1a;
+}
+
+/* Responsive */
+@media screen and (max-width: 980px) {
+  .standings-container {
+    padding: 1rem;
+  }
+  
+  .nhl-standings-table {
+    font-size: 0.8rem;
+  }
+  
+  .nhl-standings-table th,
+  .nhl-standings-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+/* Fix Padding */
+#page-wrapper {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}

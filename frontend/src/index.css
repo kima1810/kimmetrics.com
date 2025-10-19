@@ -66,3 +66,81 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Template-specific overrides if needed */
+
+/* Make sure template tables work with our table component */
+.box table {
+  width: 100%;
+}
+
+/* Ensure filter components work with template */
+/* previously forced width:100% which caused selects to stretch; we will instead
+   control width via component classes and stronger overrides below */
+
+/* Force filter inputs/selects to light appearance and compact sizing
+   Scoped to .box and .filters to avoid breaking unrelated template styles */
+.box input[type="date"],
+.box select,
+.filters input[type="date"],
+.filters select,
+.filters button {
+  background: #ffffff !important;
+  color: #111827 !important; /* gray-900 */
+  border: 1px solid #d1d5db !important; /* gray-300 */
+}
+
+/* Force selects and date inputs inside .filters/.box to not stretch */
+.box select,
+.filters select,
+.box input[type="date"],
+.filters input[type="date"] {
+  width: auto !important;
+  min-width: 10rem !important;
+  display: inline-block !important;
+}
+
+/* Compact sizing for filter buttons */
+.filters button {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.75rem !important;
+  border-radius: 0.375rem !important; /* rounded-md */
+}
+
+/* Ensure date inputs and selects have consistent height with Tailwind inputs */
+.filters input[type="date"],
+.filters select,
+.box input[type="date"],
+.box select {
+  padding: 0.375rem 0.75rem !important; /* match px-3 py-1-ish */
+  line-height: 1.2 !important;
+}
+
+/* Stronger, more specific overrides to defeat template/global selectors */
+#root .filters input[type="date"],
+#root .filters select,
+#root .box input[type="date"],
+#root .box select,
+.apply-btn {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+  width: auto !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Ensure any template or FontAwesome calendar icons inside the filters are visible */
+#root .filters .icon,
+#root .filters i[class*='fa-'],
+#root .filters .fa-calendar,
+#root .filters .fa-calendar:before {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+/* Make the apply button compact and ensure specificity */
+#root .filters .apply-btn {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.75rem !important;
+}
