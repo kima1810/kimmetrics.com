@@ -212,21 +212,31 @@ class DatabaseSyncService:
     
     def sync_current_season(self, db: Session, season: Optional[str] = None):
         """Sync entire current season"""
+        # If no season specified, determine the current season first so we can
+        # correctly query existing games and compute the start_date.
+        if not season:
+            season = self._get_current_season()
+            print(f"No season specified, using current season: {season}")
+
         latest_date = get_latest_game_date(db, season)
-        
+
+        # If the latest date in the DB is in the future (could happen due to
+        # imported or bad data), avoid computing a start date after today.
+        today = datetime.now().date()
         if latest_date:
+            # latest_date is a date object
+            if latest_date >= today:
+                print(f"   Database has games up to {latest_date} which is >= today ({today}); nothing to sync.")
+                return 0
+
             start_date = datetime.combine(latest_date, datetime.min.time()) + timedelta(days=1)
             print(f"   Database has games up to {latest_date}")
             print(f"   Syncing new games from {start_date.date()} onwards...")
         else:
-            start_date = datetime(int(season[:4]), 10, 1)
+            season_start_year = int(season[:4])
+            start_date = datetime(season_start_year, 10, 1)
             print(f"   No games in database, syncing full season from {start_date.date()}")
-        
+
         end_date = datetime.now()
-        
-        # If no season specified, use current season
-        if not season:
-            season = self._get_current_season()
-            print(f"No season specified, using current season: {season}")
-            
+
         return self.sync_games_for_date_range(db, start_date, end_date, season)

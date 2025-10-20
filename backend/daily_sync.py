@@ -13,13 +13,25 @@ from src.database.config import SessionLocal
 from src.database.sync_service import DatabaseSyncService
 
 def main():
-    season = sys.argv[1] if len(sys.argv) > 1 else "20242025"
-    
-    print(f"Syncing {season} season...")
+    # If a season (YYYYYYYY) is provided as an argument, use it; otherwise
+    # pass None so the sync service will determine the current season.
+    season = sys.argv[1] if len(sys.argv) > 1 else None
+
+    if season:
+        print(f"Syncing {season} season...")
+    else:
+        print("Syncing current season...")
     db = SessionLocal()
     sync_service = DatabaseSyncService()
     
     try:
+        # If no season was provided on the command line, determine and
+        # print the current season now so it's obvious what will be synced.
+        if not season:
+            detected = sync_service._get_current_season()
+            print(f"Detected current season: {detected}")
+            season = detected
+
         games = sync_service.sync_current_season(db, season)
         print(f"✓ Synced {games} new games")
     except Exception as e:
