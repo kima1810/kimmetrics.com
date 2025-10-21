@@ -1,14 +1,6 @@
 # Kimmetrics - Multi-Sport Analytics Platform
 
-A web application for viewing and analyzing sports statistics, starting with NHL data. Built with a modular architecture to easily support multiple sports in the future.
-
-## Quick notes (2025-10-20)
-
-- Daily sync behaviour: `daily_sync.py` now auto-detects the current season when no season is supplied, prints the detected season, and avoids syncing if the database already contains games up to today. This prevents invalid date ranges and unexpected runs that attempted to sync a past season window.
-- DB safety: the sync service will no longer attempt to sync when the latest game date in the DB is in the future (it returns early and reports nothing to sync). If you see future-dated games in the DB, consider running a diagnostic to locate and review those rows.
-- Frontend filter UX: minor fixes were applied so the "Apply Filters" button appears next to the Filters header (and only when filters are shown), dropdowns and date inputs are compact (don't stretch full-width), and the calendar glyph color has been adjusted so it's visible on light backgrounds.
-
-These are small, non-breaking usability updates — behavior and endpoints remain the same.
+A website with custom NHL data, but with more sports planned in the future. For now, there is only a way to view the standings through custom date ranges, but much more content is planned in the future
 
 ## Tech Stack
 
