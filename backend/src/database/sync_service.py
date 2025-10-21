@@ -211,7 +211,11 @@ class DatabaseSyncService:
         return self._get_season_for_date(today)
     
     def sync_current_season(self, db: Session, season: Optional[str] = None):
-        """Sync entire current season"""
+        """Sync entire current season
+        
+        When run daily, this checks yesterday and today to catch games that finished 
+        overnight or were marked final after the last sync.
+        """
         # If no season specified, determine the current season first so we can
         # correctly query existing games and compute the start_date.
         if not season:
@@ -219,19 +223,21 @@ class DatabaseSyncService:
             print(f"No season specified, using current season: {season}")
 
         latest_date = get_latest_game_date(db, season)
-
-        # If the latest date in the DB is in the future (could happen due to
-        # imported or bad data), avoid computing a start date after today.
         today = datetime.now().date()
-        if latest_date:
-            # latest_date is a date object
-            if latest_date >= today:
-                print(f"   Database has games up to {latest_date} which is >= today ({today}); nothing to sync.")
-                return 0
+        yesterday = today - timedelta(days=1)
 
-            start_date = datetime.combine(latest_date, datetime.min.time()) + timedelta(days=1)
-            print(f"   Database has games up to {latest_date}")
-            print(f"   Syncing new games from {start_date.date()} onwards...")
+        if latest_date:
+            # Always sync from yesterday to catch games that finished overnight
+            # or were updated after the previous sync
+            if latest_date >= yesterday:
+                start_date = datetime.combine(yesterday, datetime.min.time())
+                print(f"   Database has games up to {latest_date}")
+                print(f"   Re-checking from {start_date.date()} to catch any updates from last night...")
+            else:
+                # DB is more than 1 day behind, sync from the day after latest
+                start_date = datetime.combine(latest_date, datetime.min.time()) + timedelta(days=1)
+                print(f"   Database has games up to {latest_date}")
+                print(f"   Syncing new games from {start_date.date()} onwards...")
         else:
             season_start_year = int(season[:4])
             start_date = datetime(season_start_year, 10, 1)

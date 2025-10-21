@@ -179,6 +179,13 @@ def calculate_standings_from_db(
     return {'standings': standings_list}
 
 def get_latest_game_date(db: Session, season: str) -> Optional[date]:
-    """Get the most recent game date in database for a season"""
-    result = db.query(func.max(Game.game_date)).filter(Game.season == season).scalar()
+    """Get the most recent game date in database for a season (ignores future dates)"""
+    from datetime import datetime
+    today = datetime.now().date()
+    
+    # Only return dates that are <= today to avoid syncing issues with bad future data
+    result = db.query(func.max(Game.game_date)).filter(
+        Game.season == season,
+        Game.game_date <= today
+    ).scalar()
     return result
