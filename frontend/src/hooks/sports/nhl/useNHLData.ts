@@ -33,10 +33,6 @@ export function useNHLStandings(filters: NHLFilters) {
         }
       } catch (err: any) {
         if (!isCancelled) {
-          console.log('Error caught:', err);
-          console.log('Error code:', err.code);
-          console.log('Error message:', err.message);
-          
           // Check if it's a timeout error - check multiple conditions
           const isTimeout = 
             err.code === 'ECONNABORTED' || 

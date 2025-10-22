@@ -1,6 +1,6 @@
 # Kimmetrics - Multi-Sport Analytics Platform
 
-A website with custom NHL data, but with more sports planned in the future. For now, there is only a way to view the standings through custom date ranges, but much more content is planned in the future
+A website with custom NHL data, but with more sports planned in the future. For now, there is only a way to view the standings through custom date ranges, but much more content is coming soon!
 
 ## Tech Stack
 
@@ -177,7 +177,292 @@ Get all NHL teams with their information.
 #### GET `/api/nhl/seasons`
 Get available seasons for selection.
 
-## Setup Instructions
+## AWS Deployment Guide
+
+This section covers deploying Kimmetrics to AWS using EC2, RDS, and S3/CloudFront.
+
+### Architecture Overview
+
+- **Frontend**: React app built and deployed to S3 + CloudFront
+- **Backend**: FastAPI app running on EC2 (or ECS/Lambda for advanced setups)
+- **Database**: PostgreSQL on RDS
+- **Daily Sync**: Cron job or EventBridge scheduled task running `daily_sync.py`
+
+### 1. Database Setup (RDS PostgreSQL)
+
+**Create RDS Instance:**
+1. Go to AWS RDS Console
+2. Create PostgreSQL database (version 14+ recommended)
+3. Choose instance type (t3.micro for development, t3.medium+ for production)
+4. Configure:
+   - Database name: `kimmetrics`
+   - Master username: `kimmetrics_admin` (or your choice)
+   - Master password: (save securely)
+   - VPC: Default or custom
+   - Public accessibility: Yes (if accessing from local) or No (if EC2-only)
+   - Security group: Allow inbound on port 5432 from your EC2 security group
+
+**Connection String:**
+```
+postgresql://username:password@your-rds-endpoint.region.rds.amazonaws.com:5432/kimmetrics
+```
+
+### 2. Backend Deployment (EC2)
+
+**Launch EC2 Instance:**
+1. AMI: Amazon Linux 2023 or Ubuntu 22.04
+2. Instance type: t3.small minimum (t3.medium recommended for production)
+3. Security group:
+   - Inbound: Port 8000 (API), Port 22 (SSH)
+   - Outbound: All traffic
+4. Key pair: Create or use existing for SSH access
+
+**SSH and Setup:**
+```bash
+# SSH into your instance
+ssh -i your-key.pem ec2-user@your-ec2-public-ip
+
+# Update system
+sudo yum update -y  # Amazon Linux
+# or
+sudo apt update && sudo apt upgrade -y  # Ubuntu
+
+# Install Python 3.13 (or use pyenv)
+sudo yum install python3.13 -y
+
+# Install PostgreSQL client
+sudo yum install postgresql15 -y
+
+# Install git
+sudo yum install git -y
+
+# Clone your repository
+git clone https://github.com/your-username/kimmetrics.com.git
+cd kimmetrics.com/backend
+
+# Create virtual environment
+python3.13 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env file
+cp .env.example .env
+nano .env
+```
+
+**Configure `.env` for Production:**
+```bash
+DATABASE_URL=postgresql://username:password@your-rds-endpoint.region.rds.amazonaws.com:5432/kimmetrics
+ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+```
+
+**Initialize Database:**
+```bash
+python setup_database.py
+```
+
+**Run API with Gunicorn (production server):**
+```bash
+# Install gunicorn
+pip install gunicorn
+
+# Run (for testing)
+gunicorn src.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+
+# Create systemd service for auto-start
+sudo nano /etc/systemd/system/kimmetrics.service
+```
+
+**Systemd Service File (`/etc/systemd/system/kimmetrics.service`):**
+```ini
+[Unit]
+Description=Kimmetrics FastAPI Application
+After=network.target
+
+[Service]
+User=ec2-user
+WorkingDirectory=/home/ec2-user/kimmetrics.com/backend
+Environment="PATH=/home/ec2-user/kimmetrics.com/.venv/bin"
+ExecStart=/home/ec2-user/kimmetrics.com/.venv/bin/gunicorn src.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Enable and Start Service:**
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable kimmetrics
+sudo systemctl start kimmetrics
+sudo systemctl status kimmetrics
+```
+
+### 3. Daily Sync Automation
+
+**Setup Cron Job:**
+```bash
+# Edit crontab
+crontab -e
+
+# Add daily sync at 6 AM EST (adjust for your timezone)
+0 6 * * * /home/ec2-user/kimmetrics.com/.venv/bin/python /home/ec2-user/kimmetrics.com/backend/daily_sync.py >> /home/ec2-user/kimmetrics.com/logs/sync.log 2>&1
+```
+
+**Create logs directory:**
+```bash
+mkdir -p ~/kimmetrics.com/logs
+```
+
+### 4. Frontend Deployment (S3 + CloudFront)
+
+**Build Frontend:**
+```bash
+# On your local machine or EC2
+cd frontend
+
+# Install dependencies
+npm install
+
+# Update API URL in src/utils/api.ts
+# Change baseURL to your EC2 public IP or domain:
+# baseURL: 'http://your-ec2-ip:8000/api'
+# or
+# baseURL: 'https://api.your-domain.com/api'
+
+# Build for production
+npm run build
+```
+
+**Create S3 Bucket:**
+1. Go to S3 Console
+2. Create bucket (e.g., `kimmetrics-frontend`)
+3. Disable "Block all public access"
+4. Enable static website hosting
+   - Index document: `index.html`
+   - Error document: `index.html` (for React Router)
+
+**Upload Build:**
+```bash
+# Install AWS CLI if not installed
+# Upload dist folder to S3
+aws s3 sync dist/ s3://kimmetrics-frontend/ --delete
+```
+
+**Bucket Policy (make public):**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::kimmetrics-frontend/*"
+    }
+  ]
+}
+```
+
+**Setup CloudFront (CDN):**
+1. Go to CloudFront Console
+2. Create distribution
+3. Origin domain: Your S3 bucket static website endpoint
+4. Viewer protocol policy: Redirect HTTP to HTTPS
+5. Default root object: `index.html`
+6. Error pages: Add custom error response
+   - HTTP error code: 403, 404
+   - Response page path: `/index.html`
+   - HTTP response code: 200
+
+**Custom Domain (Optional):**
+1. Get CloudFront distribution domain (e.g., `d123abc.cloudfront.net`)
+2. In Route 53 or your DNS provider:
+   - Create CNAME record: `www.your-domain.com` → CloudFront domain
+   - Or use A record with alias to CloudFront
+
+### 5. Security Hardening
+
+**Backend:**
+- Use AWS Secrets Manager for `DATABASE_URL` instead of `.env` file
+- Setup HTTPS with Let's Encrypt or AWS Certificate Manager + Application Load Balancer
+- Restrict RDS security group to only EC2 security group
+- Enable RDS automated backups (7-30 day retention)
+- Use IAM roles for EC2 instead of storing AWS credentials
+
+**Frontend:**
+- Enable CloudFront Origin Access Identity (OAI) to restrict direct S3 access
+- Setup WAF (Web Application Firewall) rules on CloudFront
+- Enable CloudFront access logging
+
+### 6. Monitoring & Maintenance
+
+**CloudWatch Monitoring:**
+```bash
+# Install CloudWatch agent on EC2
+sudo yum install amazon-cloudwatch-agent -y
+
+# Configure to monitor:
+# - CPU usage
+# - Memory usage
+# - Disk usage
+# - Application logs
+```
+
+**Log Management:**
+- API logs: `/var/log/kimmetrics/api.log`
+- Sync logs: `~/kimmetrics.com/logs/sync.log`
+- Setup log rotation:
+```bash
+sudo nano /etc/logrotate.d/kimmetrics
+```
+
+**Database Backups:**
+- RDS automated backups (enabled by default)
+- Optional: Create manual snapshot before major updates
+
+**Cost Optimization:**
+- Use RDS reserved instances for 1-3 year commitment (saves 30-60%)
+- Use EC2 reserved instances or Savings Plans
+- Enable S3 lifecycle policies to move old logs to Glacier
+- Setup AWS Budgets alerts
+
+### 7. Environment Variables Summary
+
+**Backend `.env`:**
+```bash
+DATABASE_URL=postgresql://username:password@rds-endpoint:5432/kimmetrics
+ALLOWED_ORIGINS=https://your-domain.com
+```
+
+**Frontend `src/utils/api.ts`:**
+```typescript
+const api = axios.create({
+  baseURL: 'https://api.your-domain.com/api',  // Or http://ec2-ip:8000/api
+  timeout: 120000
+});
+```
+
+### 8. Deployment Checklist
+
+- [ ] RDS PostgreSQL database created and accessible
+- [ ] EC2 instance launched with security groups configured
+- [ ] Backend code deployed and running as systemd service
+- [ ] Database initialized with `setup_database.py`
+- [ ] Daily sync cron job configured
+- [ ] Frontend built with correct API URL
+- [ ] S3 bucket created and frontend uploaded
+- [ ] CloudFront distribution created and working
+- [ ] Custom domain configured (if applicable)
+- [ ] HTTPS setup (Let's Encrypt or ACM)
+- [ ] Backups configured for RDS
+- [ ] CloudWatch monitoring enabled
+- [ ] Cost alerts setup in AWS Budgets
+
+## Local Development Setup
 
 ### Prerequisites
 - Python 3.13+
@@ -253,28 +538,6 @@ Create component in frontend/src/components/common/[ComponentName]/
 Define types in frontend/src/types/common.ts if needed
 Export from index.ts for easy imports
 Component should be generic and reusable across sports
-
-Architecture Decisions
-Why FastAPI?
-
-The nhl-api-py library is Python-only
-FastAPI provides automatic API documentation
-Easy to add caching and custom analytics
-Fast performance with async/await support
-
-Why Vite?
-
-Faster than Create React App
-Better TypeScript support
-Modern build tooling
-Excellent developer experience
-
-Component Structure
-
-Common components are sport-agnostic and highly reusable
-Sport components use common components and add sport-specific logic
-Pages compose components and manage state
-Hooks handle data fetching and state management
 
 Type System
 
