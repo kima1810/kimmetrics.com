@@ -1,4 +1,3 @@
-import React from 'react';
 import type { TableColumn, SortConfig } from '../../../types/common';
 import { TableHeader } from './TableHeader';
 

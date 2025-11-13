@@ -1,4 +1,3 @@
-import React from 'react';
 import { Table } from '../../common/Table';
 import type { TableColumn, SortConfig } from '../../../types/common';
 import type { NHLStanding } from '../../../types/nhl';
@@ -15,7 +14,7 @@ export function NHLStandingsTable({ data, sortConfig, onSort }: NHLStandingsTabl
       key: 'team',
       label: 'Team',
       sortable: true,
-      formatter: (value: any, row: NHLStanding) => {
+      formatter: (_value: any, row: NHLStanding) => {
         if (row.teamName?.default) {
           return row.teamName.default;
         }
