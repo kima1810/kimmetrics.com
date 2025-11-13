@@ -26,20 +26,7 @@ class NHLService:
     ):
         """Get NHL standings - uses database for custom date ranges"""
         try:
-            # Parse dates if provided
-            start_date_obj = self._parse_date(start_date)
-            end_date_obj = self._parse_date(end_date)
-            
-            if start_date_obj and end_date_obj:
-                # For date ranges, determine which seasons are involved
-                start_season = self._get_season_for_date(start_date_obj)
-                end_season = self._get_season_for_date(end_date_obj)
-                
-                # If no specific season requested but date range spans multiple seasons,
-                # use all seasons in the range
-                if season == "20242025" and start_season != end_season:
-                    season = None  # This will make the DB query include all relevant seasons
-                
+            if start_date or end_date:
                 # Use database for custom date ranges (FAST!)
                 if not db:
                     # Fallback to old method if no db connection
@@ -57,19 +44,6 @@ class NHLService:
         except Exception as e:
             raise Exception(f"Failed to fetch standings: {str(e)}")
     
-    def _parse_date(self, date_str: Optional[str]) -> Optional[datetime.date]:
-        """Parse date string to date object"""
-        if not date_str:
-            return None
-        return datetime.strptime(date_str, "%Y-%m-%d").date()
-    
-    def _get_season_for_date(self, date_obj: datetime.date) -> str:
-        """Get NHL season for a given date"""
-        year = date_obj.year
-        if date_obj.month < 7:  # Jan-Jun are part of previous year's season
-            return f"{year-1}{year}"
-        return f"{year}{year+1}"
-    
     async def _get_standings_from_db(
         self,
         season: str,
@@ -84,64 +58,29 @@ class NHLService:
         if start_date and not end_date:
             end_date = datetime.now().strftime('%Y-%m-%d')
         elif end_date and not start_date:
-            # If season provided, default start to season start; otherwise pick Oct 1 of end_date's season
-            if season:
-                start_date = f"{season[:4]}-10-01"
-            else:
-                # derive season from end_date
-                end_dt_tmp = self._parse_date(end_date)
-                start_date = f"{(end_dt_tmp.year if end_dt_tmp.month >= 7 else end_dt_tmp.year-1)}-10-01"
-
-        # Parse date objects
-        start_dt = self._parse_date(start_date)
-        end_dt = self._parse_date(end_date)
-
-        if not start_dt or not end_dt:
-            raise ValueError("Invalid start_date or end_date provided")
-
-        # Determine seasons that the date range spans
-        start_season = self._get_season_for_date(start_dt)
-        end_season = self._get_season_for_date(end_dt)
-
-        seasons_to_sync = []
-        # build list of seasons between start_season and end_season inclusive
-        if start_season == end_season:
-            seasons_to_sync = [start_season]
-        else:
-            # seasons are strings like '20232024' — increment year ranges
-            s_year = int(start_season[:4])
-            e_year = int(end_season[:4])
-            for y in range(s_year, e_year + 1):
-                seasons_to_sync.append(f"{y}{y+1}")
-
-        # For each season in range, sync the portion of dates that fall within that season's bounds
-        for s in seasons_to_sync:
-            season_start = datetime(int(s[:4]), 10, 1).date()
-            season_end = datetime(int(s[:4]) + 1, 6, 30).date()
-
-            portion_start = max(start_dt, season_start)
-            portion_end = min(end_dt, season_end)
-
-            if portion_start > portion_end:
-                continue
-
-            latest_in_db = get_latest_game_date(db, s)
-            # If DB doesn't have up to portion_end, sync missing days
-            if not latest_in_db or latest_in_db < portion_end:
-                sync_start = (latest_in_db + timedelta(days=1)) if latest_in_db else datetime(int(s[:4]), 10, 1).date()
-                sync_end = min(portion_end, datetime.now().date())
-
-                if sync_start <= sync_end:
-                    self.sync_service.sync_games_for_date_range(
-                        db,
-                        datetime.combine(sync_start, datetime.min.time()),
-                        datetime.combine(sync_end, datetime.min.time()),
-                        s
-                    )
-
+            start_date = f"{season[:4]}-10-01"
+        
+        # Ensure data is synced up to end_date
+        latest_in_db = get_latest_game_date(db, season)
+        end_dt = datetime.fromisoformat(end_date).date()
+        
+        if not latest_in_db or latest_in_db < end_dt:
+            # Sync missing data
+            sync_start = latest_in_db + timedelta(days=1) if latest_in_db else datetime(int(season[:4]), 10, 1)
+            sync_end = min(end_dt, datetime.now().date())
+            
+            self.sync_service.sync_games_for_date_range(
+                db,
+                datetime.combine(sync_start, datetime.min.time()),
+                datetime.combine(sync_end, datetime.min.time()),
+                season
+            )
+        
         # Calculate standings from database
+        start_dt = datetime.fromisoformat(start_date).date()
+        
         return calculate_standings_from_db(
-            db, start_dt, end_dt, None if len(seasons_to_sync) > 1 else seasons_to_sync[0], division, conference
+            db, start_dt, end_dt, season, division, conference
         )
     
     async def _get_standings_fallback(

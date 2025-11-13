@@ -1,31 +1,10 @@
-/* Reset conflicting styles */
-body {
-  display: block !important;
-  place-items: unset !important;
-  margin: 0 !important;
-  background: #f7f7f7 url(/assets/css/images/bg01.png) !important;
-  color: #474747 !important;
-  font-family: 'Source Sans Pro', sans-serif !important;
-  min-height: unset !important;
-}
-
-#page-wrapper {
-  padding-right: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
-}
-
 /* NHL-style table overrides */
 
 /* Center the table container */
 .standings-container {
-  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
+  padding: 2rem;
 }
 
 /* NHL-style table */
@@ -34,7 +13,9 @@ body {
   background: white;
   border-collapse: separate;
   border-spacing: 0;
-  margin: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 /* Black header with white text */
@@ -142,11 +123,4 @@ body {
   .nhl-standings-table td {
     padding: 0.75rem 0.5rem;
   }
-}
-
-/* Fix Padding */
-#page-wrapper {
-  padding-right: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
 }

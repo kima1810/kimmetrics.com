@@ -11,33 +11,16 @@ def get_games_by_date_range(
     season: Optional[str] = None
 ) -> List[Game]:
     """Get all completed games within date range"""
-    # First get all seasons that overlap with this date range
-    seasons = db.query(Game.season).distinct().filter(
-        and_(
-            Game.game_date >= start_date,
-            Game.game_date <= end_date
-        )
-    ).all()
-    seasons = [s[0] for s in seasons]
-    
-    if not seasons:
-        return []
-        
-    # If a specific season was requested, filter to just that season
-    if season:
-        if season not in seasons:
-            return []  # Requested season not in range
-        seasons = [season]
-        
-    # Get games for all relevant seasons
     query = db.query(Game).filter(
         and_(
             Game.game_date >= start_date,
             Game.game_date <= end_date,
-            Game.season.in_(seasons),
             Game.game_state.in_(['OFF', 'FINAL'])
         )
     )
+    
+    if season:
+        query = query.filter(Game.season == season)
     
     return query.all()
 
@@ -63,31 +46,11 @@ def upsert_game(db: Session, game_data: dict) -> Game:
     return game
 
 def bulk_upsert_games(db: Session, games_data: List[dict]) -> List[Game]:
-    """Bulk insert or update games in a single transaction"""
+    """Bulk insert or update games"""
     games = []
-    try:
-        for game_data in games_data:
-            game = db.query(Game).filter(Game.id == game_data['id']).first()
-            if game:
-                # Update existing
-                for key, value in game_data.items():
-                    setattr(game, key, value)
-            else:
-                # Create new
-                game = Game(**game_data)
-                db.add(game)
-            games.append(game)
-        
-        db.commit()  # Single commit for all games
-        
-        # Refresh all games to get their latest state
-        for game in games:
-            db.refresh(game)
-            
-        return games
-    except Exception as e:
-        db.rollback()  # Rollback on error
-        raise Exception(f"Failed to sync games: {str(e)}")
+    for game_data in games_data:
+        games.append(upsert_game(db, game_data))
+    return games
 
 def calculate_standings_from_db(
     db: Session,
@@ -179,13 +142,6 @@ def calculate_standings_from_db(
     return {'standings': standings_list}
 
 def get_latest_game_date(db: Session, season: str) -> Optional[date]:
-    """Get the most recent game date in database for a season (ignores future dates)"""
-    from datetime import datetime
-    today = datetime.now().date()
-    
-    # Only return dates that are <= today to avoid syncing issues with bad future data
-    result = db.query(func.max(Game.game_date)).filter(
-        Game.season == season,
-        Game.game_date <= today
-    ).scalar()
+    """Get the most recent game date in database for a season"""
+    result = db.query(func.max(Game.game_date)).filter(Game.season == season).scalar()
     return result

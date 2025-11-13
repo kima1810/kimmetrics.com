@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState, memo, useEffect } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { NHLFilters, NHLStandingsTable } from '../../components/sports/nhl';
 import { LoadingSpinner } from '../../components/common/Loading';
@@ -10,14 +10,14 @@ import type { NHLFilters as NHLFiltersType } from '../../types/nhl';
 import '../../styles/nhl-table.css';
 
 const initialFilters: NHLFiltersType = {
-  season: '20252026',
+  season: '20242025',
   startDate: null,
   endDate: null,
   division: null,
   conference: null
 };
 
-const StandingsContent = React.memo(({ 
+const StandingsContent = memo(({ 
   standings, 
   sortConfig, 
   handleSort, 
@@ -59,9 +59,9 @@ export function StandingsPage() {
   const standings = standingsData?.standings || [];
   const { sortedData, sortConfig, handleSort } = useSorting(standings, { key: 'points', direction: 'desc' });
   
-  const availableSeasons = seasonsData?.seasons || ['20252026', '20242025', '20232024', '20222023', '20212022', '20202021'];
+  const availableSeasons = seasonsData?.seasons || ['20242025', '20232024', '20222023'];
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (timeoutOccurred) {
       setShowToast(true);
     }
@@ -89,30 +89,28 @@ export function StandingsPage() {
         />
       )}
 
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">NHL Standings</h2>
-          <p className="text-gray-600">{headerText}</p>
-        </div>
+      <div className="standings-container">
+        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+          NHL Standings
+        </h2>
+        <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '2rem' }}>
+          {headerText}
+        </p>
 
-        <div className="mb-6">
-          <NHLFilters
-            filters={filters}
-            onFiltersChange={updateFilters}
-            onApplyFilters={handleApplyFilters}
-            availableSeasons={availableSeasons}
-          />
-        </div>
+        <NHLFilters
+          filters={filters}
+          onFiltersChange={updateFilters}
+          onApplyFilters={handleApplyFilters}
+          availableSeasons={availableSeasons}
+        />
 
-        <div className="standings-container">
-          <StandingsContent
-            standings={sortedData}
-            sortConfig={sortConfig}
-            handleSort={handleSort}
-            loading={standingsLoading}
-            error={standingsError}
-          />
-        </div>
+        <StandingsContent
+          standings={sortedData}
+          sortConfig={sortConfig}
+          handleSort={handleSort}
+          loading={standingsLoading}
+          error={standingsError}
+        />
       </div>
     </MainLayout>
   );
